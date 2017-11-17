@@ -1,4 +1,9 @@
-*.class
+ClientHTTP/build
+ClientHTTP/nbproject
+ServeurHTTP/build
+ServeurHTTP/nbproject
+
+
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
