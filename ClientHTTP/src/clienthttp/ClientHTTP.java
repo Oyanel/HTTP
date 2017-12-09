@@ -5,17 +5,20 @@
  */
 package clienthttp;
 
+import clienthttp.envoi.Send;
+
+
 /**
  *
  * @author Epulapp
  */
 public class ClientHTTP {
-
+    
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
-        // TODO code application logic here
+    public static void main(String[] args) throws Exception {
+        Send sender = new Send();        
     }
     
 }
