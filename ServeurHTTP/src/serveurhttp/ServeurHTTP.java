@@ -21,7 +21,8 @@ import java.io.InputStreamReader;
  */
 public class ServeurHTTP {
 
-    private static final String RESPONSE = "<RESPONSE_STRING>";
+    private static final String RESPONSE = "Hello";
+    private static OutputStream os;
 
     static class MyHandler implements HttpHandler {
 
@@ -29,12 +30,14 @@ public class ServeurHTTP {
         public void handle(HttpExchange t) throws IOException {
             t.sendResponseHeaders(200, RESPONSE.length());
             System.out.println(t.getRequestURI());
-            OutputStream os = t.getResponseBody();
+            t.getResponseHeaders().set("Set-Cookie", "test=test");
+            os = t.getResponseBody();
             os.write(RESPONSE.getBytes());
+            os.flush();
             os.close();
         }
     }
-
+    
     public static void main(String[] args) throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
         server.createContext("/", new MyHandler());
