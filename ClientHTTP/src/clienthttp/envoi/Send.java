@@ -6,19 +6,15 @@
 package clienthttp.envoi;
 
 import UI.BrowseUI;
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,12 +28,13 @@ public class Send {
     private static int _PORT = 8080;
     private static String _PAGE = "";
     private static String _RESPONSE;
+    private static final String _CONTENT_TYPE = "Content-type";
+    private static final String _HTML = "text/html";
+    private static final String _IMAGE = "image/png";
+    private static final String _STREAM = "application/octet-stream";
     private static HttpURLConnection con;
     private static DataOutputStream out;
     private static BufferedReader in;
-    //cookies
-    private static java.net.CookieManager msCookieManager;
-    private static final String COOKIES_HEADER = "Set-Cookie";
 
     public static String getURL() {
         return _URL;
@@ -71,7 +68,7 @@ public class Send {
         Send._RESPONSE = _RESPONSE;
         if (BrowseUI.getWindows().length > 0) {
             BrowseUI window = (BrowseUI) BrowseUI.getWindows()[0];
-            window.setJPane1(_RESPONSE);
+            window.setJPane1Text(_RESPONSE);
         }
     }
 
@@ -99,12 +96,11 @@ public class Send {
     }
 
     public void run() {
-
         try {
             URL url = new URL("http://" + _URL + ":" + _PORT + "/" + _PAGE);
             con = (HttpURLConnection) url.openConnection();
-            con.setConnectTimeout(5000);
-            con.setReadTimeout(5000);
+            con.setConnectTimeout(3000);
+            con.setReadTimeout(3000);
             System.out.println("Tentative de connexion vers " + _URL + "...\n\r");
 
             //creation des flux entrants et sortants
@@ -118,13 +114,23 @@ public class Send {
             sendGetRequest();
 
             //attente de a réponse
-            this.setRESPONSE(readPage());
+            Reader reader = new Reader();
+            if (_HTML.equals(con.getHeaderField(_CONTENT_TYPE))) {
+                this.setRESPONSE(reader.readPage(con, in));
+            } else if (_IMAGE.equals(con.getHeaderField(_CONTENT_TYPE)) || _STREAM.equals(con.getHeaderField(_CONTENT_TYPE))) {
+                Download.downloadFile(url, in);
+                this.setRESPONSE("Fichier téléchargé :" + Download.DOWNLOAD_DIRECTORY + "/" + url.getFile().substring(url.getFile().lastIndexOf('/') + 1));
+            } else {                
+                this.setRESPONSE("Type de contenu non géré par le client");
+            }
             System.out.println(_RESPONSE);
 
             in.close();
             con.disconnect();
+            closeConnexion();
         } catch (IOException ex) {
             Logger.getLogger(Send.class.getName()).log(Level.SEVERE, null, ex);
+            setRESPONSE(con.getErrorStream().toString());
         } finally {
             if (con != null) {
                 con.disconnect();
@@ -132,31 +138,9 @@ public class Send {
         }
     }
 
-    private String readPage() {
-
-        StringBuilder content = new StringBuilder();
-        try {
-            if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                Map<String, List<String>> headers = con.getHeaderFields();
-                for (Entry<String, List<String>> header : headers.entrySet()) {
-                    System.out.println(header.getKey() + ": " + header.getValue());
-                }
-                String s;
-                String inputLine;
-                saveCookies();
-                while ((inputLine = in.readLine()) != null) {
-                    content.append(inputLine);
-                }
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(Send.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return content.toString();
-    }
-
     private static void sendGetRequest() {
         try {
-            sendCookie();
+            Cookie.sendCookie(con);
             out.flush();
             out.close();
         } catch (ProtocolException ex) {
@@ -173,39 +157,6 @@ public class Send {
             out.close();
         } catch (IOException ex) {
             Logger.getLogger(Send.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    public void saveCookies() {
-        Map<String, List<String>> headerFields = con.getHeaderFields();
-        List<String> cookiesHeader = headerFields.get(COOKIES_HEADER);
-        if (cookiesHeader != null) {
-            for (String cookie : cookiesHeader) {
-                try {
-                    msCookieManager.getCookieStore().add(new URI(getFullURL()), HttpCookie.parse(cookie).get(0));
-                } catch (URISyntaxException ex) {
-                    Logger.getLogger(Send.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        }
-    }
-
-    private String getFullURL() {
-        return "http://" + _URL + ":" + _PORT + "/" + _PAGE;
-    }
-
-    private static void sendCookie() {
-        msCookieManager = new java.net.CookieManager();
-        Map<String, List<String>> headerFields = con.getHeaderFields();
-        List<String> cookiesHeader = headerFields.get(COOKIES_HEADER);
-        int nbCookies = msCookieManager.getCookieStore().getCookies().size();
-        if (nbCookies > 0) {
-            String temp = new String();
-            // While joining the Cookies, use ',' or ';' as needed. Most of the servers are using ';'
-            for (int i = 0; i < nbCookies; i++) {
-                temp.concat(msCookieManager.getCookieStore().getCookies().get(i).toString());
-            }
-            con.setRequestProperty("Cookie", temp);
         }
     }
 }
