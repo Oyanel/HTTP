@@ -21,7 +21,7 @@ import java.io.InputStreamReader;
  */
 public class ServeurHTTP {
 
-    private static final String RESPONSE = "Hello";
+    private static String RESPONSE = "Hello";
     private static OutputStream os;
 
     static class MyHandler implements HttpHandler {

@@ -112,14 +112,16 @@ public class Send {
             //écriture et envoi de la requete
             System.out.println("Envoi de la requete");
             sendGetRequest();
-
+            if("HTTP".equals(con.getHeaderField("Protocol"))){
+                
+            }
             //attente de a réponse
             Reader reader = new Reader();
             if (_HTML.equals(con.getHeaderField(_CONTENT_TYPE))) {
                 this.setRESPONSE(reader.readPage(con, in));
             } else if (_IMAGE.equals(con.getHeaderField(_CONTENT_TYPE)) || _STREAM.equals(con.getHeaderField(_CONTENT_TYPE))) {
-                Download.downloadFile(url, in);
-                this.setRESPONSE("Fichier téléchargé :" + Download.DOWNLOAD_DIRECTORY + "/" + url.getFile().substring(url.getFile().lastIndexOf('/') + 1));
+                Download.downloadFile(url, con.getInputStream());
+                this.setRESPONSE("Fichier téléchargé :" + Download.DOWNLOAD_DIRECTORY + "\\" + url.getFile().substring(url.getFile().lastIndexOf('/') + 1));
             } else {                
                 this.setRESPONSE("Type de contenu non géré par le client");
             }
