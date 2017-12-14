@@ -5,14 +5,9 @@
  */
 package clienthttp.envoi;
 
-import UI.BrowseUI;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpCookie;
 import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;

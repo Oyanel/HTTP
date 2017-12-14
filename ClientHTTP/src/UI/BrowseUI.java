@@ -47,11 +47,11 @@ public class BrowseUI extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("HTTP Client");
-        setAlwaysOnTop(true);
         setBackground(new java.awt.Color(255, 255, 255));
         setLocation(new java.awt.Point(500, 200));
         setMinimumSize(new java.awt.Dimension(410, 229));
 
+        jTextField1.setText("localhost");
         jTextField1.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusLost(java.awt.event.FocusEvent evt) {
                 jTextField1FocusLost(evt);
@@ -66,6 +66,7 @@ public class BrowseUI extends javax.swing.JFrame {
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("Port");
 
+        jTextField2.setText("test.html");
         jTextField2.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusLost(java.awt.event.FocusEvent evt) {
                 jTextField2FocusLost(evt);
@@ -77,6 +78,7 @@ public class BrowseUI extends javax.swing.JFrame {
             }
         });
 
+        jTextField3.setText("8080");
         jTextField3.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusLost(java.awt.event.FocusEvent evt) {
                 jTextField3FocusLost(evt);

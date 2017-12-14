@@ -99,11 +99,14 @@ public class Send {
         try {
             URL url = new URL("http://" + _URL + ":" + _PORT + "/" + _PAGE);
             con = (HttpURLConnection) url.openConnection();
+
+            con.setRequestMethod("GET");
             con.setConnectTimeout(3000);
-            con.setReadTimeout(3000);
+            con.setReadTimeout(300000);
             System.out.println("Tentative de connexion vers " + _URL + "...\n\r");
 
             //creation des flux entrants et sortants
+            con.setDoInput(true);
             con.setDoOutput(true);
             out = new DataOutputStream(con.getOutputStream());
             in = new BufferedReader(
@@ -112,8 +115,8 @@ public class Send {
             //écriture et envoi de la requete
             System.out.println("Envoi de la requete");
             sendGetRequest();
-            if("HTTP".equals(con.getHeaderField("Protocol"))){
-                
+            if ("HTTP".equals(con.getHeaderField("Protocol"))) {
+
             }
             //attente de a réponse
             Reader reader = new Reader();
@@ -122,17 +125,18 @@ public class Send {
             } else if (_IMAGE.equals(con.getHeaderField(_CONTENT_TYPE)) || _STREAM.equals(con.getHeaderField(_CONTENT_TYPE))) {
                 Download.downloadFile(url, con.getInputStream());
                 this.setRESPONSE("Fichier téléchargé :" + Download.DOWNLOAD_DIRECTORY + "\\" + url.getFile().substring(url.getFile().lastIndexOf('/') + 1));
-            } else {                
+            } else {
                 this.setRESPONSE("Type de contenu non géré par le client");
             }
             System.out.println(_RESPONSE);
 
             in.close();
-            con.disconnect();
             closeConnexion();
         } catch (IOException ex) {
             Logger.getLogger(Send.class.getName()).log(Level.SEVERE, null, ex);
-            setRESPONSE(con.getErrorStream().toString());
+            if (con.getErrorStream() != null) {
+                setRESPONSE(con.getErrorStream().toString());
+            }
         } finally {
             if (con != null) {
                 con.disconnect();

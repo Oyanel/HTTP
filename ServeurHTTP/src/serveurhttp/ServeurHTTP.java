@@ -11,9 +11,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import com.sun.net.httpserver.HttpExchange;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.Path;
 
 /**
  *
@@ -21,57 +22,48 @@ import java.io.InputStreamReader;
  */
 public class ServeurHTTP {
 
-    private static String RESPONSE = "Hello";
-    private static OutputStream os;
+    private static final String FILE_DIRECTORY = "C:" + File.separator + "Users" + File.separator + "Epulapp" + File.separator + "Documents" + File.separator + "Cours" + File.separator + "2017" + File.separator + "ARSIR" + File.separator + "server";
 
     static class MyHandler implements HttpHandler {
 
         @Override
         public void handle(HttpExchange t) throws IOException {
-            t.sendResponseHeaders(200, RESPONSE.length());
-            System.out.println(t.getRequestURI());
-            t.getResponseHeaders().set("Set-Cookie", "test=test");
-            os = t.getResponseBody();
-            os.write(RESPONSE.getBytes());
-            os.flush();
-            os.close();
-        }
-    }
-    
-    public static void main(String[] args) throws IOException {
-        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
-        server.createContext("/", new MyHandler());
-        server.setExecutor(null); // creates a default executor
-        server.start();
-    }
+            OutputStream os = null;
+            byte[] RESPONSE;
 
-    private static String getStringFromInputStream(InputStream is) {
-
-        BufferedReader br = null;
-        StringBuilder sb = new StringBuilder();
-
-        String line;
-        try {
-
-            br = new BufferedReader(new InputStreamReader(is));
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+            try {
+                System.out.println(t.getRequestURI());
+                Path pagePath = Paths.get(FILE_DIRECTORY + t.getRequestURI());
+                File file = new File(pagePath.toString());
+                if (file.exists()) {
+                    RESPONSE = Files.readAllBytes(pagePath);
+                    if (pagePath.getFileName().toString().endsWith("png")) {
+                        t.getResponseHeaders().add("Content-Type", "image/png");
+                    } else if (pagePath.getFileName().toString().endsWith("html")) {
+                        t.getResponseHeaders().add("Content-Type", "text/html");
+                    }
+                    t.sendResponseHeaders(200, RESPONSE.length);
+                } else {
+                    RESPONSE = "Error 404".getBytes();
+                    t.sendResponseHeaders(404, RESPONSE.length);
+                }
+                os = t.getResponseBody();
+                os.write(RESPONSE);
+                os.flush();
+            } catch (Exception e) {
+                e.getStackTrace();
+            } finally {
+                if (os != null) {
+                    os.close();
                 }
             }
         }
-
-        return sb.toString();
-
     }
 
+    public static void main(String[] args) throws IOException {
+        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+        server.createContext("/", new MyHandler());
+        server.setExecutor(null);
+        server.start();
+    }
 }
