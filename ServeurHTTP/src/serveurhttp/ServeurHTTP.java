@@ -39,13 +39,19 @@ public class ServeurHTTP {
                     RESPONSE = Files.readAllBytes(pagePath);
                     if (pagePath.getFileName().toString().endsWith("png")) {
                         t.getResponseHeaders().add("Content-Type", "image/png");
+                    } else if (pagePath.getFileName().toString().endsWith("jpg") || pagePath.getFileName().toString().endsWith("jpeg")) {
+                        t.getResponseHeaders().add("Content-Type", "image/jpeg");
                     } else if (pagePath.getFileName().toString().endsWith("html")) {
                         t.getResponseHeaders().add("Content-Type", "text/html");
+                    } else if (pagePath.getFileName().toString().endsWith("gif")) {
+                        t.getResponseHeaders().add("Content-Type", "image/gif");
+                    } else if (pagePath.getFileName().toString().endsWith("pdf")) {
+                        t.getResponseHeaders().add("Content-Type", "application/pdf");
                     }
                     t.sendResponseHeaders(200, RESPONSE.length);
                 } else {
-                    RESPONSE = "Error 404".getBytes();
-                    t.sendResponseHeaders(404, RESPONSE.length);
+                    RESPONSE = "Non erreur 404".getBytes();
+                    t.sendResponseHeaders(500, RESPONSE.length);
                 }
                 os = t.getResponseBody();
                 os.write(RESPONSE);
